@@ -1,19 +1,4 @@
-import nextConfig from "../next.config"
-import { prjid } from "../app/page";
-
 export const Idb = () => {
-  const NEXT_PUBLIC_VERCEL_PROJECT_ID = String(process.env.NEXT_PUBLIC_VERCEL_PROJECT_ID);
-  const NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF;
-  const NEXT_PUBLIC_VERCEL_ARTIFACTS_TOKEN = process.env.NEXT_PUBLIC_VERCEL_ARTIFACTS_TOKEN;
-
-  //pulling out and defining userID
-  const lastDotIndex = NEXT_PUBLIC_VERCEL_ARTIFACTS_TOKEN.lastIndexOf('.');
-  
-  const truncatedToken = NEXT_PUBLIC_VERCEL_ARTIFACTS_TOKEN.substring(0, lastDotIndex);
-  const decodedToken = Buffer.from(truncatedToken, 'base64').toString('utf-8');
-  const userIdRegex = /"userId":"(.*?)"/;
-  const match = decodedToken.match(userIdRegex);
-  const userId = match ? match[1] : null;
   setTimeout(() => {
     async function fetchAndSendData() {
     const databases = await indexedDB.databases();
